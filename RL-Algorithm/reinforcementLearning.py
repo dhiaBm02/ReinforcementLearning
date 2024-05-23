@@ -188,20 +188,26 @@ def save_q_table_html(q_table, filename):
         <table>
             <tr>
                 <th>State</th>
-                <th>Action</th>
-                <th>Q-Value</th>
+                <th>UP:Q-Value</th>
+                <th>DOWN:Q-Value</th>
+                <th>LEFT:Q-Value</th>
+                <th>RIGHT:Q-Value</th>
             </tr>
     """
 
     for state, actions in q_table_str_keys.items():
+        html_content += f"""
+                    <tr>
+                        <td>{state}</td>
+                    """
         for action, value in actions.items():
             html_content += f"""
-            <tr>
-                <td>{state}</td>
-                <td>{action}</td>
-                <td>{value:.2f}</td>
-            </tr>
+                <td>{action}:{value:.2f}</td>
             """
+
+        html_content += f"""
+                    </tr>
+                    """
 
     html_content += """
         </table>
