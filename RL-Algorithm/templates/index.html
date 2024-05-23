@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Q-learning Visualization</title>
+    <style>
+        table {
+            border-collapse: collapse;
+        }
+        td {
+            width: 40px;
+            height: 40px;
+            text-align: center;
+            border: 1px solid black;
+        }
+        .start { background-color: lightgreen; }
+        .goal { background-color: lightblue; }
+        .obstacle { background-color: lightcoral; }
+    </style>
+</head>
+<body>
+    <h1>Q-learning Grid Visualization</h1>
+    <div id="grid"></div>
+    <script>
+        const gridSize = { grid_size };
+        const start = {{ start|tojson }};
+        const goal = {{ goal|tojson }};
+
+        function createGrid(gridSize, startPositions, goals, obstacles) {
+            const grid = document.getElementById('grid');
+            const table = document.createElement('table');
+            for (let i = 0; i < gridSize[0]; i++) {
+                const row = document.createElement('tr');
+                for (let j = 0; j < gridSize[1]; j++) {
+                    const cell = document.createElement('td');
+                    if (startPositions.some(pos => pos[0] === i && pos[1] === j)) {
+                        cell.classList.add('start');
+                    } else if (goals.some(pos => pos[0] === i && pos[1] === j)) {
+                        cell.classList.add('goal');
+                    } else if (obstacles.some(pos => pos[0] === i && pos[1] === j)) {
+                        cell.classList.add('obstacle');
+                    }
+                    row.appendChild(cell);
+                }
+                table.appendChild(row);
+            }
+            grid.appendChild(table);
+        }
+
+        async function fetchQTable() {
+            const response = await fetch('/q_table');
+            const qTable = await response.json();
+            console.log(qTable);
+        }
+
+        createGrid(gridSize, startPositions, goals, obstacles);
+        fetchQTable();
+    </script>
+</body>
+</html>
