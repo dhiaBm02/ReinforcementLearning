@@ -101,12 +101,6 @@ def train_q_learning():
             max_future_q = max(q_table[next_state].values())
             q_table[state][action] += alpha * (reward + gamma * max_future_q - q_table[state][action])
 
-            # print(f"\n{episode=}, {state=}, {next_state=}, {reward=}")
-            #if episode == 0:
-            #    print(f"\nepisode 0 step {_} Q-Table:")
-            #    for state, actions in q_table.items():
-            #        print(f"State {state}: {actions}")
-
             state = next_state
 
             if episode == 0:

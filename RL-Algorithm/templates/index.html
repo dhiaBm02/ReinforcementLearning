@@ -1,61 +1,123 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Q-learning Visualization</title>
+    <title>Q-Table Visualization</title>
     <style>
         table {
+            width: 100%;
             border-collapse: collapse;
         }
-        td {
-            width: 40px;
-            height: 40px;
-            text-align: center;
+        th, td {
             border: 1px solid black;
+            padding: 8px;
+            text-align: center;
         }
-        .start { background-color: lightgreen; }
-        .goal { background-color: lightblue; }
-        .obstacle { background-color: lightcoral; }
+        .changed {
+            color: red;
+            transition: color 1s;
+        }
     </style>
 </head>
 <body>
-    <h1>Q-learning Grid Visualization</h1>
-    <div id="grid"></div>
+    <h1>Q-Table Visualization</h1>
+    <div>
+        <button onclick="trainEpisodes(1)">Next Episode</button>
+        <button onclick="trainEpisodes(1000)">Run 1000 Episodes</button>
+        <button onclick="trainAllEpisodes()">Run All Episodes</button>
+        <button onclick="resetQTable()">Reset Q-Table</button>
+    </div>
+    <table id="qTable">
+        <thead>
+            <tr>
+                <th>State</th>
+                <th>Up</th>
+                <th>Down</th>
+                <th>Left</th>
+                <th>Right</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Dynamic rows will be added here -->
+        </tbody>
+    </table>
+
     <script>
-        const gridSize = { grid_size };
-        const start = {{ start|tojson }};
-        const goal = {{ goal|tojson }};
+        let previousValues = {};
 
-        function createGrid(gridSize, startPositions, goals, obstacles) {
-            const grid = document.getElementById('grid');
-            const table = document.createElement('table');
-            for (let i = 0; i < gridSize[0]; i++) {
-                const row = document.createElement('tr');
-                for (let j = 0; j < gridSize[1]; j++) {
-                    const cell = document.createElement('td');
-                    if (startPositions.some(pos => pos[0] === i && pos[1] === j)) {
-                        cell.classList.add('start');
-                    } else if (goals.some(pos => pos[0] === i && pos[1] === j)) {
-                        cell.classList.add('goal');
-                    } else if (obstacles.some(pos => pos[0] === i && pos[1] === j)) {
-                        cell.classList.add('obstacle');
+        function updateTable(qTable) {
+            console.log("in update qtable");
+            const tableBody = document.getElementById('qTable').getElementsByTagName('tbody')[0];
+            tableBody.innerHTML = ''; // Clear previous content
+
+            for (const [state, actions] of Object.entries(qTable)) {
+                const row = tableBody.insertRow();
+                const cellState = row.insertCell(0);
+                const cellUp = row.insertCell(1);
+                const cellDown = row.insertCell(2);
+                const cellLeft = row.insertCell(3);
+                const cellRight = row.insertCell(4);
+
+                cellState.innerHTML = state;
+                cellUp.innerHTML = actions["up"].toFixed(2);
+                cellDown.innerHTML = actions["down"].toFixed(2);
+                cellLeft.innerHTML = actions["left"].toFixed(2);
+                cellRight.innerHTML = actions["right"].toFixed(2);
+
+                // Check for changes and apply the 'changed' class if needed
+                ['up', 'down', 'left', 'right'].forEach(action => {
+                    const cell = row.cells[action === 'up' ? 1 : action === 'down' ? 2 : action === 'left' ? 3 : 4];
+                    const previousValue = previousValues[state]?.[action];
+
+                    if (previousValue !== undefined && previousValue !== actions[action]) {
+                        cell.classList.add('changed');
+                        setTimeout(() => cell.classList.remove('changed'), 3000);
                     }
-                    row.appendChild(cell);
-                }
-                table.appendChild(row);
+
+                    if (!previousValues[state]) {
+                        previousValues[state] = {};
+                    }
+                    previousValues[state][action] = actions[action];
+                });
             }
-            grid.appendChild(table);
         }
 
-        async function fetchQTable() {
-            const response = await fetch('/q_table');
+        async function trainEpisodes(episodes) {
+            const response = await fetch('/train', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ episodes: episodes })
+            });
             const qTable = await response.json();
-            console.log(qTable);
+            updateTable(qTable);
         }
 
-        createGrid(gridSize, startPositions, goals, obstacles);
-        fetchQTable();
+        async function trainAllEpisodes() {
+            const response = await fetch('/train', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ episodes: 10000 })
+            });
+            const qTable = await response.json();
+            updateTable(qTable);
+        }
+
+        async function resetQTable() {
+            const response = await fetch('/reset', {
+                method: 'POST'
+            });
+            const qTable = await response.json();
+            updateTable(qTable);
+        }
+
+        // Initialize the Q-table
+        resetQTable();
+
+
+        //setInterval(updateTable, 5000); // Fetch and update every second
     </script>
 </body>
 </html>
