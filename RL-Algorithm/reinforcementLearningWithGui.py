@@ -3,8 +3,8 @@ import json
 from pyamaze import maze, agent, COLOR
 
 # Environment settings
-grid_size = (10, 10)
-start = (9, 9)
+grid_size = (5, 5)
+start = (4, 4)
 goal = (0, 0)
 obstacles = []  # No obstacles in this simple example
 actions = ['up', 'down', 'left', 'right']
@@ -190,7 +190,7 @@ def create_open_maze_with_boundaries(rows, cols):
 # Main logic
 if __name__ == "__main__":
     # set up the maze
-    m = create_open_maze_with_boundaries(10, 10)
+    m = create_open_maze_with_boundaries(5, 5)
     m.CreateMaze()
 
     a0 = agent(m, color=COLOR.green, filled=True, footprints=True)

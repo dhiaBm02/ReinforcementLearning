@@ -6,7 +6,8 @@ import webbrowser
 grid_size = (5, 5)
 start = (0, 0)
 goal = (4, 4)
-obstacles = []  # No obstacles in this simple example
+goals = [(4, 4), (1, 3)]
+obstacles = [(1, 1), (2, 1)]  # No obstacles in this simple example
 actions = ['up', 'down', 'left', 'right']
 action_to_delta = {
     'up': (-1, 0),
@@ -16,10 +17,10 @@ action_to_delta = {
 }
 
 # Q-learning settings
-alpha = 0.1  # Learning rate
+alpha = 0.9  # Learning rate
 gamma = 0.9  # Discount factor
-epsilon = 0.2  # Exploration rate
-num_episodes = 1000
+epsilon = 0.5  # Exploration rate
+num_episodes = 10000
 max_steps_per_episode = 100  # To prevent infinite loops
 
 # Initialize Q-table
@@ -31,7 +32,7 @@ for x in range(grid_size[0]):
 
 def is_valid_state(state):
     x, y = state
-    if (0 <= x < grid_size[0] and 0 <= y < grid_size[1] and state not in obstacles):
+    if (0 <= x < grid_size[0] and 0 <= y < grid_size[1]):
         return True
     return False
 
@@ -45,11 +46,15 @@ def get_next_state(state, action):
 
 
 def get_reward(state):
-    if state == goal:
-        return 100  # Reward for reaching the goal
+    if state in goals: # Reward for reaching the goal
+        if state == (4, 4):
+            return 100
+        if state == (2, 2):
+            return 50
+
     if state in obstacles:
         return -100  # Penalty for hitting an obstacle
-    return -1  # Small penalty for each step to encourage the shortest path
+    return 0  # Small penalty for each step to encourage the shortest path
 
 
 def choose_action(state):
@@ -100,16 +105,16 @@ def train_q_learning():
 
             state = next_state
 
-            if state == goal:
+            if state in goals:
                 break  # Exit if goal is reached
 
 
 # Extract the best path
-def extract_path(start, goal):
+def extract_path(start, goals):
     path = [start]
     state = start
     for _ in range(max_steps_per_episode):  # Limit steps to avoid infinite loops
-        if state == goal:
+        if state in goals:
             break
         action = max(q_table[state], key=q_table[state].get)
         next_state = get_next_state(state, action)
@@ -176,14 +181,15 @@ def save_q_table_html(q_table, filename):
             cell_class = 'cell'
             if (x, y) == start:
                 cell_class += ' start'
-            elif (x, y) == goal:
+            elif (x, y) in goals:
                 cell_class += ' goal'
             elif (x, y) in obstacles:
                 cell_class += ' obstacle'
             html_content += f'<div class="{cell_class}">({x},{y})</div>'
 
-    html_content += """
+    html_content += f"""
         </div>
+        <p>Best path: {extract_path(start, goals)}</p>
         <h2>Q-Table</h2>
         <table>
             <tr>
@@ -202,7 +208,7 @@ def save_q_table_html(q_table, filename):
                     """
         for action, value in actions.items():
             html_content += f"""
-                <td>{action}:{value:.2f}</td>
+                <td>{value:.2f}</td>
             """
 
         html_content += f"""
@@ -223,18 +229,18 @@ def save_q_table_html(q_table, filename):
 if __name__ == "__main__":
     # Train the model and save the Q-table
     train_q_learning()
-    save_q_table('QTable.json')
+    save_q_table('QTableTest.json')
 
     # Load the Q-table
-    q_table = load_q_table('QTable.json')
+    q_table = load_q_table('QTableTest.json')
 
     # Save the Q-table as an HTML file for visualization
-    save_q_table_html(q_table, 'QTable.html')
+    save_q_table_html(q_table, 'QTableTest.html')
 
-    webbrowser.open('QTable.html')
+    webbrowser.open('QTableTest.html')
 
     # Print the best path found
-    best_path = extract_path(start, goal)
+    best_path = extract_path(start, goals)
     print("Best path found:", best_path)
 
     # Print the final Q-Table for verification

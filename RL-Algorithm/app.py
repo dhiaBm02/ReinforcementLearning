@@ -5,10 +5,10 @@ import random
 app = Flask(__name__)
 
 # Environment settings
-grid_size = (3, 3)
+grid_size = (5, 5)
 start = (0, 0)
-goal = (2, 2)
-obstacles = []  # No obstacles in this simple example
+goal = (4, 4)
+obstacles = [(2,1), (1, 2)]  # No obstacles in this simple example
 actions = ['up', 'down', 'left', 'right']
 action_to_delta = {
     'up': (-1, 0),
@@ -33,7 +33,7 @@ for x in range(grid_size[0]):
 
 def is_valid_state(state):
     x, y = state
-    if (0 <= x < grid_size[0] and 0 <= y < grid_size[1] and state not in obstacles):
+    if (0 <= x < grid_size[0] and 0 <= y < grid_size[1]):
         return True
     return False
 
